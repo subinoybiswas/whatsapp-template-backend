@@ -22,7 +22,7 @@ app.get<{}, MessageResponse>('/', (req, res) => {
   });
 });
 
-app.use('/', templateRoutes);
+app.use('/api', templateRoutes);
 
 app.use(middlewares.notFound);
 app.use(middlewares.errorHandler);
