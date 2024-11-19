@@ -14,13 +14,15 @@ router.post('/validate-template',
     }
 
     const { template } = req.body;
-    const placeholderRegex = /{{\s*[\w]+\s*}}/g;
+    const placeholderRegex = /{{\s*[a-zA-Z_]+\s*}}/g;
     const placeholders = template.match(placeholderRegex);
 
     if (!placeholders) {
       const response: TemplateApiResponse = { success: false, message: 'Invalid template format' };
       if (template.includes('{{') && !template.includes('}}')) {
         response.message = 'Invalid template format: missing closing "}}" for a placeholder';
+      } else if (template.match(/{{\s*[a-zA-Z_]*\d+[a-zA-Z_]*\s*}}/g)) {
+        response.message = 'Invalid template format: placeholders cannot contain numbers';
       }
       return res.status(400).json(response);
     }
@@ -43,11 +45,14 @@ router.post('/generate-preview',
 
     const { template, variables } = req.body;
     console.log(req.body);
-    const placeholderRegex = /{{\s*[\w]+\s*}}/g;
+    const placeholderRegex = /{{\s*[a-zA-Z_]+\s*}}/g;
     let preview = template;
 
     if (template.includes('{{') && !template.includes('}}')) {
       const response: TemplateApiResponse = { success: false, message: 'Invalid template format: missing closing "}}" for a placeholder' };
+      return res.status(400).json(response);
+    } else if (template.match(/{{\s*[a-zA-Z_]*\d+[a-zA-Z_]*\s*}}/g)) {
+      const response: TemplateApiResponse = { success: false, message: 'Invalid template format: placeholders cannot contain numbers' };
       return res.status(400).json(response);
     }
 
@@ -64,7 +69,7 @@ router.post('/generate-preview',
           const response: TemplateApiResponse = { success: false, message: `Invalid variable value for placeholder: ${key}` };
           return res.status(400).json(response);
         }
-        preview = preview.replace(ph, variables[key]);
+        preview = preview.replace(new RegExp(`{{\\s*${key}\\s*}}`, 'g'), variables[key]);
       }
     } else {
       const response: TemplateApiResponse = { success: false, message: 'No placeholders found in the template' };
