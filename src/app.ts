@@ -5,7 +5,7 @@ import cors from 'cors';
 
 import * as middlewares from './middlewares';
 import MessageResponse from './interfaces/MessageResponse';
-import templateRoutes from './api/templateRoutes';
+import templateRoutes from './api';
 
 require('dotenv').config();
 
@@ -16,13 +16,8 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-app.get<{}, MessageResponse>('/', (req, res) => {
-  res.json({
-    message: 'API Functional',
-  });
-});
 
-app.use('/', templateRoutes);
+app.use('/api', templateRoutes);
 
 app.use(middlewares.notFound);
 app.use(middlewares.errorHandler);
