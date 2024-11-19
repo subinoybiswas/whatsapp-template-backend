@@ -14,15 +14,15 @@ router.post('/validate-template',
     }
 
     const { template } = req.body;
-    const placeholderRegex = /{{\s*[a-zA-Z_]+\s*}}/g;
+    const placeholderRegex = /{{\s*[a-zA-Z_][a-zA-Z_0-9]*\s*}}/g;
     const placeholders = template.match(placeholderRegex);
 
     if (!placeholders) {
       const response: TemplateApiResponse = { success: false, message: 'Invalid template format' };
       if (template.includes('{{') && !template.includes('}}')) {
         response.message = 'Invalid template format: missing closing "}}" for a placeholder';
-      } else if (template.match(/{{\s*[a-zA-Z_]*\d+[a-zA-Z_]*\s*}}/g)) {
-        response.message = 'Invalid template format: placeholders cannot contain numbers';
+      } else if (template.match(/{{\s*[^a-zA-Z_][^}]*\s*}}/g) || template.match(/{{\s*[a-zA-Z_]*\d+[a-zA-Z_]*\s*}}/g)) {
+        response.message = 'Invalid template format: placeholders must start with a letter and cannot contain special characters or numbers';
       }
       return res.status(400).json(response);
     }
@@ -45,14 +45,14 @@ router.post('/generate-preview',
 
     const { template, variables } = req.body;
     console.log(req.body);
-    const placeholderRegex = /{{\s*[a-zA-Z_]+\s*}}/g;
+    const placeholderRegex = /{{\s*[a-zA-Z_][a-zA-Z_0-9]*\s*}}/g;
     let preview = template;
 
     if (template.includes('{{') && !template.includes('}}')) {
       const response: TemplateApiResponse = { success: false, message: 'Invalid template format: missing closing "}}" for a placeholder' };
       return res.status(400).json(response);
-    } else if (template.match(/{{\s*[a-zA-Z_]*\d+[a-zA-Z_]*\s*}}/g)) {
-      const response: TemplateApiResponse = { success: false, message: 'Invalid template format: placeholders cannot contain numbers' };
+    } else if (template.match(/{{\s*[^a-zA-Z_][^}]*\s*}}/g) || template.match(/{{\s*[a-zA-Z_]*\d+[a-zA-Z_]*\s*}}/g)) {
+      const response: TemplateApiResponse = { success: false, message: 'Invalid template format: placeholders must start with a letter and cannot contain special characters or numbers' };
       return res.status(400).json(response);
     }
 
